@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from flask import Flask, make_response, jsonify, session
 from flask_migrate import Migrate
 
@@ -22,13 +20,17 @@ def clear_session():
 
 @app.route('/articles')
 def index_articles():
+    articles = [article.to_dict() for article in Article.query.all()]
+    return make_response(jsonify(articles), 200)
 
-    pass
-
-@app.route('/articles/<int:id>')
+@app.route('/articles/<int:id>', method=['GET'])
 def show_article(id):
+    session['page_views'] = session.get('page_views') or 0
+    session['page_views'] += 1
 
-    pass
+    if session['page_views'] <= 3:
+        return Article.query.filter(Article.id == id).first().to_dict(), 200
+    return {"message": "Maximum pageview limit reached"}, 401
 
 if __name__ == '__main__':
     app.run(port=5555)
